@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Superglobal: $_SERVER
     $transaction_name = trim($_POST['transaction_name']);
     $amount = trim($_POST['amount']);
     $type = $_POST['type'] ?? '';
-    $note = $_POST['note'] ?? '';
+    $note = trim($_POST['note'] ?? ''); // Sửa: thêm trim() để loại bỏ khoảng trắng
     $date = trim($_POST['date']);
 
     $errors = [];
@@ -29,12 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Superglobal: $_SERVER
         $errors[] = "Tên giao dịch không được chứa ký tự đặc biệt.";
     }
 
-    //  Số tiền là số dương
+    // Số tiền là số dương
     if (!preg_match('/^\d+(\.\d+)?$/', $amount) || $amount <= 0) {
         $errors[] = "Số tiền phải là số dương và không có chữ.";
     }
 
-    //  Ngày đúng định dạng dd/mm/yyyy
+    // Ngày đúng định dạng dd/mm/yyyy
     if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
         $errors[] = "Ngày phải đúng định dạng dd/mm/yyyy.";
     }
@@ -46,8 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Superglobal: $_SERVER
 
     // Kiểm tra từ khóa nhạy cảm trong ghi chú
     foreach ($tu_khoa_nhay_cam as $kw) {
-        if (stripos($note, $kw) !== false) {
-            $canh_bao[] = "Ghi chú có chứa từ khóa nhạy cảm: \"$kw\"";
+        if (stripos($note, $kw) !== false || stripos($transaction_name, $kw) !== false) {
+            $errors[] = "Thông tin có chứa từ khóa nhạy cảm: \"$kw\"";
+            break;
         }
     }
 
@@ -62,15 +63,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Superglobal: $_SERVER
         ];
 
         $_SESSION['transactions'][] = $gd;
+    }
+}
 
-        // Cập nhật tổng thu/chi qua biến toàn cục
-        foreach ($_SESSION['transactions'] as $t) {
-            if ($t['type'] === 'thu') {
-                $GLOBALS['tong_thu'] += $t['amount'];
-            } elseif ($t['type'] === 'chi') {
-                $GLOBALS['tong_chi'] += $t['amount'];
-            }
-        }
+//  Luôn cập nhật tổng thu/chi sau mỗi thao tác, kể cả khi có lỗi
+$GLOBALS['tong_thu'] = 0;
+$GLOBALS['tong_chi'] = 0;
+
+foreach ($_SESSION['transactions'] as $t) {
+    if ($t['type'] === 'thu') {
+        $GLOBALS['tong_thu'] += $t['amount'];
+    } elseif ($t['type'] === 'chi') {
+        $GLOBALS['tong_chi'] += $t['amount'];
     }
 }
 ?>
@@ -100,15 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Superglobal: $_SERVER
             <h4>Lỗi:</h4>
             <ul>
                 <?php foreach ($errors as $e) echo "<li>$e</li>"; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
-
-    <?php if (!empty($canh_bao)): ?>
-        <div style="color: orange;">
-            <h4>Cảnh báo:</h4>
-            <ul>
-                <?php foreach ($canh_bao as $w) echo "<li>$w</li>"; ?>
             </ul>
         </div>
     <?php endif; ?>
