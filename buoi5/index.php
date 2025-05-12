@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($_FILES['proof']['name'])) {
         $filename = handle_upload($_FILES['proof']);
-    }
+    } 
 
     write_log($action, $filename);
     echo "<p style='color: green;'>Đã ghi nhật ký thành công!</p>";
