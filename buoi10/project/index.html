@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AJAX E-commerce</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Sản phẩm</h1>
+<div id="product-list">
+    <button onclick="loadProductDetail(1)">Sản phẩm 1</button>
+    <button onclick="loadProductDetail(2)">Sản phẩm 2</button>
+</div>
+<div id="product-detail"></div>
+
+<h2>Giỏ hàng</h2>
+<button onclick="addToCart(1)">Thêm SP 1</button>
+<button onclick="addToCart(2)">Thêm SP 2</button>
+<span id="cart-count">Giỏ: 0</span>
+
+<h2>Đánh giá</h2>
+<button onclick="loadReviews(1)">Xem đánh giá SP1</button>
+<div id="reviews"></div>
+
+<h2>Thương hiệu</h2>
+<select id="category" onchange="loadBrands()">
+    <option value="dien_tu">Điện tử</option>
+    <option value="thoi_trang">Thời trang</option>
+</select>
+<select id="brands"></select>
+
+<h2>Tìm kiếm</h2>
+<input type="text" id="search" placeholder="Tìm sản phẩm..." onkeyup="liveSearch()">
+<div id="search-result"></div>
+
+<h2>Bình chọn cải tiến</h2>
+<form id="poll-form">
+    <label><input type="radio" name="vote" value="speed"> Tốc độ</label>
+    <label><input type="radio" name="vote" value="service"> Dịch vụ</label>
+    <button type="button" onclick="submitPoll()">Gửi</button>
+</form>
+<div id="poll-result"></div>
+
+<script src="js/scrip.js"></script>
+</body>
+</html>

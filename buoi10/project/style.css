@@ -1,0 +1,2 @@
+body { font-family: sans-serif; padding: 20px; }
+#product-detail, #reviews, #search-result, #poll-result { margin-top: 10px; padding: 10px; border: 1px solid #ccc; }
