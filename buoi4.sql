@@ -1,148 +1,52 @@
--- phpMyAdmin SQL Dump
--- version 5.2.0
--- https://www.phpmyadmin.net/
---
--- Host: localhost:3306
--- Generation Time: May 23, 2025 at 03:20 PM
--- Server version: 8.0.30
--- PHP Version: 8.2.20
+-- 1. Tạo cơ sở dữ liệu OnlineLearning
+CREATE DATABASE IF NOT EXISTS OnlineLearning;
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+-- 2. Sử dụng cơ sở dữ liệu OnlineLearning
+USE OnlineLearning;
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `b4`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `courses`
---
-
-CREATE TABLE `courses` (
-  `course_id` int NOT NULL,
-  `title` varchar(100) NOT NULL,
-  `description` text,
-  `price` int DEFAULT NULL
-) ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `enrollments`
---
-
-CREATE TABLE `enrollments` (
-  `enrollment_id` int NOT NULL,
-  `student_id` int DEFAULT NULL,
-  `course_id` int DEFAULT NULL,
-  `enroll_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(20) DEFAULT 'active'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `studentcourseview`
--- (See below for the actual view)
---
-CREATE TABLE `studentcourseview` (
-`course_id` int
-,`course_title` varchar(100)
-,`full_name` varchar(100)
-,`student_id` int
+-- 3. Tạo bảng Students
+CREATE TABLE Students (
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- 4. Tạo bảng Courses
+CREATE TABLE Courses (
+    course_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    price INT CHECK (price >= 0)
 );
 
--- --------------------------------------------------------
+-- 5. Tạo bảng Enrollments
+CREATE TABLE Enrollments (
+    enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT,
+    course_id INT,
+    enroll_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'active',
+    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    CONSTRAINT fk_course FOREIGN KEY (course_id) REFERENCES Courses(course_id)
+);
+-- 6. Tạo VIEW StudentCourseView hiển thị sinh viên và tên khóa học đã đăng ký
+CREATE VIEW StudentCourseView AS
+SELECT 
+    s.student_id,
+    s.full_name,
+    c.course_id,
+    c.title AS course_title,
+    e.enroll_date,
+    e.status
+FROM Enrollments e
+JOIN Students s ON e.student_id = s.student_id
+JOIN Courses c ON e.course_id = c.course_id;
 
---
--- Table structure for table `students`
---
+-- 7. Tạo INDEX trên cột title của bảng Courses để tối ưu tìm kiếm
+CREATE INDEX idx_course_title ON Courses(title);
 
-CREATE TABLE `students` (
-  `student_id` int NOT NULL,
-  `full_name` varchar(100) NOT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `join_date` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- 8. Xóa bảng Enrollments nếu không còn cần nữa
+-- DROP TABLE IF EXISTS Enrollments;
 
--- --------------------------------------------------------
-
---
--- Structure for view `studentcourseview`
---
-DROP TABLE IF EXISTS `studentcourseview`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `studentcourseview`  AS SELECT `s`.`student_id` AS `student_id`, `s`.`full_name` AS `full_name`, `c`.`course_id` AS `course_id`, `c`.`title` AS `course_title` FROM ((`enrollments` `e` join `students` `s` on((`e`.`student_id` = `s`.`student_id`))) join `courses` `c` on((`e`.`course_id` = `c`.`course_id`)))  ;
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `courses`
---
-ALTER TABLE `courses`
-  ADD PRIMARY KEY (`course_id`),
-  ADD KEY `idx_course_title` (`title`);
-
---
--- Indexes for table `enrollments`
---
-ALTER TABLE `enrollments`
-  ADD PRIMARY KEY (`enrollment_id`),
-  ADD KEY `fk_student` (`student_id`),
-  ADD KEY `fk_course` (`course_id`);
-
---
--- Indexes for table `students`
---
-ALTER TABLE `students`
-  ADD PRIMARY KEY (`student_id`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `courses`
---
-ALTER TABLE `courses`
-  MODIFY `course_id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `enrollments`
---
-ALTER TABLE `enrollments`
-  MODIFY `enrollment_id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `students`
---
-ALTER TABLE `students`
-  MODIFY `student_id` int NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `enrollments`
---
-ALTER TABLE `enrollments`
-  ADD CONSTRAINT `fk_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`),
-  ADD CONSTRAINT `fk_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`);
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- 9. Xóa cơ sở dữ liệu OnlineLearning nếu không còn dùng nữa
+-- DROP DATABASE IF EXISTS OnlineLearning;
